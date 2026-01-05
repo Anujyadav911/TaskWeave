@@ -1,0 +1,19 @@
+# Build artifacts
+*.exe
+*.out
+*.o
+*.obj
+
+# CMake / build folders
+build/
+bin/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
