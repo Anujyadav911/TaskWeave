@@ -1,19 +1,31 @@
 #pragma once
 #include <functional>
+#include <chrono>
+#include "TaskState.h"
+
+enum class TaskPriority {
+    LOW = 0,
+    MEDIUM = 1,
+    HIGH = 2
+};
 
 class Task {
 public:
-    using TaskFn = std::function<void()>;
+    Task(int id, TaskPriority priority, std::function<void()> fn);
 
-    Task(int id, int priority, TaskFn fn);
-
-    void execute() const;
+    void markReady();
+    void execute();
 
     int getId() const;
-    int getPriority() const;
+    TaskPriority getPriority() const;
+    TaskState getState() const;
+    std::chrono::steady_clock::time_point getEnqueueTime() const;
 
 private:
     int id;
-    int priority;
-    TaskFn fn;
+    TaskPriority priority;
+    std::function<void()> fn;
+
+    TaskState state;
+    std::chrono::steady_clock::time_point enqueueTime;
 };

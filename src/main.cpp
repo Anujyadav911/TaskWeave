@@ -1,23 +1,30 @@
 #include <iostream>
 #include <thread>
 
-#include "core/Task.h"
 #include "executor/ThreadPool.h"
+#include "scheduler/PriorityScheduler.h"
 #include "../utils/Logger.h"
 
 int main() {
-    Logger::info("TaskWeave Engine Starting (Phase 1)");
+    Logger::info("TaskWeave Engine Starting (Phase 2)");
 
-    ThreadPool pool(3);
+    auto scheduler = std::make_shared<PriorityScheduler>();
+    ThreadPool pool(3, scheduler);
 
-    for (int i = 1; i <= 6; ++i) {
-        pool.submit(Task(i, i, [i] {
-            std::cout << "Executing Task " << i
-                      << " on thread " << std::this_thread::get_id()
-                      << std::endl;
-        }));
-    }
+    scheduler->submit(Task(1, TaskPriority::LOW, [] {
+        std::cout << "LOW priority task\n";
+    }));
 
-    Logger::info("All tasks submitted");
+    scheduler->submit(Task(2, TaskPriority::HIGH, [] {
+        std::cout << "HIGH priority task\n";
+    }));
+
+    scheduler->submit(Task(3, TaskPriority::MEDIUM, [] {
+        std::cout << "MEDIUM priority task\n";
+    }));
+
+    pool.start();
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     return 0;
 }

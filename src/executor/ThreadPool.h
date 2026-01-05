@@ -1,29 +1,26 @@
 #pragma once
-
 #include <vector>
-#include <queue>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <atomic>
+#include <condition_variable>
+#include <memory>
 
-#include "../core/Task.h"
+#include "../scheduler/Scheduler.h"
 
 class ThreadPool {
 public:
-    explicit ThreadPool(size_t threadCount);
+    ThreadPool(size_t threadCount, std::shared_ptr<Scheduler> scheduler);
     ~ThreadPool();
 
-    void submit(Task task);
+    void start();
 
 private:
     void workerLoop();
 
     std::vector<std::thread> workers;
-    std::queue<Task> taskQueue;
-
-    std::mutex queueMutex;
-    std::condition_variable cv;
+    std::shared_ptr<Scheduler> scheduler;
 
     std::atomic<bool> stop;
+    std::mutex mtx;
+    std::condition_variable cv;
 };

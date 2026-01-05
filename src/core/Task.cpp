@@ -1,16 +1,31 @@
 #include "Task.h"
 
-Task::Task(int id, int priority, TaskFn fn)
-    : id(id), priority(priority), fn(fn) {}
+Task::Task(int id, TaskPriority priority, std::function<void()> fn)
+    : id(id), priority(priority), fn(std::move(fn)), state(TaskState::CREATED) {}
 
-void Task::execute() const {
+void Task::markReady() {
+    state = TaskState::READY;
+    enqueueTime = std::chrono::steady_clock::now();
+}
+
+void Task::execute() {
+    state = TaskState::RUNNING;
     fn();
+    state = TaskState::COMPLETED;
 }
 
 int Task::getId() const {
     return id;
 }
 
-int Task::getPriority() const {
+TaskPriority Task::getPriority() const {
     return priority;
+}
+
+TaskState Task::getState() const {
+    return state;
+}
+
+std::chrono::steady_clock::time_point Task::getEnqueueTime() const {
+    return enqueueTime;
 }

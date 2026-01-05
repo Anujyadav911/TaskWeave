@@ -1,11 +1,9 @@
-#ifndef TASK_STATE_H
-#define TASK_STATE_H
+#pragma once
 
 enum class TaskState {
-    PENDING,
+    CREATED,
+    READY,
     RUNNING,
     COMPLETED,
     FAILED
 };
-
-#endif
