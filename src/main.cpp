@@ -1,21 +1,23 @@
 #include <iostream>
+#include <thread>
+
 #include "core/Task.h"
+#include "executor/ThreadPool.h"
 #include "../utils/Logger.h"
 
 int main() {
-    Logger::info("TaskWeave Engine Starting (Phase 0)");
+    Logger::info("TaskWeave Engine Starting (Phase 1)");
 
-    Task task1(1, 5, []() {
-        std::cout << "Executing Task 1\n";
-    });
+    ThreadPool pool(3);
 
-    Task task2(2, 1, []() {
-        std::cout << "Executing Task 2\n";
-    });
+    for (int i = 1; i <= 6; ++i) {
+        pool.submit(Task(i, i, [i] {
+            std::cout << "Executing Task " << i
+                      << " on thread " << std::this_thread::get_id()
+                      << std::endl;
+        }));
+    }
 
-    task1.execute();
-    task2.execute();
-
-    Logger::info("All tasks executed successfully");
+    Logger::info("All tasks submitted");
     return 0;
 }

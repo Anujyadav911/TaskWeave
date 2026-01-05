@@ -1,25 +1,19 @@
-#ifndef TASK_H
-#define TASK_H
-
+#pragma once
 #include <functional>
-#include <string>
-#include "TaskState.h"
 
 class Task {
-private:
-    int id;
-    int priority;
-    TaskState state;
-    std::function<void()> work;
-
 public:
-    Task(int id, int priority, std::function<void()> work);
+    using TaskFn = std::function<void()>;
+
+    Task(int id, int priority, TaskFn fn);
+
+    void execute() const;
 
     int getId() const;
     int getPriority() const;
-    TaskState getState() const;
 
-    void execute();
+private:
+    int id;
+    int priority;
+    TaskFn fn;
 };
-
-#endif
