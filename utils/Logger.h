@@ -1,6 +1,4 @@
-#ifndef LOGGER_H
-#define LOGGER_H
-
+#pragma once
 #include <iostream>
 #include <string>
 
@@ -10,13 +8,7 @@ public:
         std::cout << "[INFO] " << msg << std::endl;
     }
 
-    static void warn(const std::string& msg) {
-        std::cout << "[WARN] " << msg << std::endl;
-    }
-
     static void error(const std::string& msg) {
         std::cerr << "[ERROR] " << msg << std::endl;
     }
 };
-
-#endif
