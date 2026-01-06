@@ -28,10 +28,12 @@ void Metrics::recordTask(const Task& task) {
     std::lock_guard<std::mutex> lock(mtx);
 
     ++totalTasks;
+    totalRetries += static_cast<std::uint64_t>(task.getRetryCount());
     if (task.getState() == TaskState::COMPLETED) {
         ++completedTasks;
     } else if (task.getState() == TaskState::FAILED) {
         ++failedTasks;
+        ++failedFinalTasks;
     }
 
     totalWaitTime += waitTime;
@@ -79,7 +81,8 @@ void Metrics::printSummary() const {
     std::cout << "===== METRICS SUMMARY =====\n";
     std::cout << "Tasks Executed   : " << totalTasks << "\n";
     std::cout << "Completed        : " << completedTasks << "\n";
-    std::cout << "Failed           : " << failedTasks << "\n\n";
+    std::cout << "Failed           : " << failedTasks << "\n";
+    std::cout << "Total Retries    : " << totalRetries << "\n\n";
 
     std::cout << "Avg Wait Time    : " << avgWaitMs << " ms\n";
     std::cout << "Avg Exec Time    : " << avgExecMs << " ms\n";

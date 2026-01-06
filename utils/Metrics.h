@@ -20,6 +20,8 @@ private:
     std::uint64_t totalTasks = 0;
     std::uint64_t completedTasks = 0;
     std::uint64_t failedTasks = 0;
+    std::uint64_t totalRetries = 0;
+    std::uint64_t failedFinalTasks = 0;
 
     std::chrono::steady_clock::duration totalWaitTime{};
     std::chrono::steady_clock::duration totalExecTime{};

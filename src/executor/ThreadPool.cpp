@@ -35,8 +35,20 @@ void ThreadPool::workerLoop() {
     while (!stop) {
         if (!scheduler->empty()) {
             Task task = scheduler->getNextTask();
-            task.execute();
-            Metrics::instance().recordTask(task);
+            try {
+                task.execute();
+                Metrics::instance().recordTask(task);
+            } catch (...) {
+                if (task.shouldRetry()) {
+                    task.markRetry();
+                    std::this_thread::sleep_for(
+                        std::chrono::milliseconds(50 * task.getRetryCount()));
+                    scheduler->submit(task);
+                } else {
+                    task.markFailed();
+                    Metrics::instance().recordTask(task);
+                }
+            }
         } else {
             std::unique_lock<std::mutex> lock(mtx);
             cv.wait_for(lock, std::chrono::milliseconds(50));

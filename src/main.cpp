@@ -76,6 +76,20 @@ void runPhase3() {
             }
         ));
     }
+        // Phase 6 demo: task that fails twice, then succeeds on 3rd attempt
+        static int attempts = 0;
+        pool.submit(Task(
+            42,
+            TaskPriority::HIGH,
+            [] {
+                attempts++;
+                std::cout << "[Phase 6] Task 42 attempt " << attempts << std::endl;
+                if (attempts < 3) {
+                    throw std::runtime_error("simulated failure");
+                }
+            },
+            3 // maxRetries
+        ));
 
     // 🔥 CRITICAL LINE (allow workers to run)
     std::this_thread::sleep_for(std::chrono::seconds(1));

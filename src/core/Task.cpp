@@ -2,7 +2,10 @@
 
 #include <thread>
 
-Task::Task(int id, TaskPriority priority, std::function<void()> fn)
+Task::Task(int id,
+           TaskPriority priority,
+           std::function<void()> fn,
+           int maxRetries)
     : id(id),
       priority(priority),
       fn(std::move(fn)),
@@ -10,7 +13,9 @@ Task::Task(int id, TaskPriority priority, std::function<void()> fn)
       enqueueTime(),
       startTime(),
       endTime(),
-      threadId() {}
+      threadId(),
+      retryCount(0),
+      maxRetries(maxRetries) {}
 
 bool Task::canTransition(TaskState from, TaskState to) const {
     switch (from) {
@@ -18,11 +23,18 @@ bool Task::canTransition(TaskState from, TaskState to) const {
             return to == TaskState::READY;
 
         case TaskState::READY:
-            return to == TaskState::RUNNING;
+            return to == TaskState::RUNNING ||
+                   to == TaskState::READY;
 
         case TaskState::RUNNING:
             return to == TaskState::COMPLETED ||
                    to == TaskState::FAILED;
+
+        case TaskState::FAILED:
+            return to == TaskState::RETRYING;
+
+        case TaskState::RETRYING:
+            return to == TaskState::READY;
 
         default:
             return false;
@@ -49,10 +61,35 @@ void Task::execute() {
         state = TaskState::COMPLETED;
     } catch (...) {
         state = TaskState::FAILED;
+        endTime = std::chrono::steady_clock::now();
+        threadId = std::this_thread::get_id();
+        throw;
     }
 
     endTime = std::chrono::steady_clock::now();
     threadId = std::this_thread::get_id();
+}
+
+bool Task::shouldRetry() const {
+    return retryCount < maxRetries;
+}
+
+void Task::markRetry() {
+    if (!shouldRetry())
+        return;
+
+    if (!canTransition(state, TaskState::RETRYING))
+        return;
+
+    state = TaskState::RETRYING;
+    ++retryCount;
+
+    // Move back to READY and capture a new enqueue time
+    markReady();
+}
+
+void Task::markFailed() {
+    state = TaskState::FAILED;
 }
 
 int Task::getId() const {
@@ -81,4 +118,12 @@ std::chrono::steady_clock::time_point Task::getEndTime() const {
 
 std::thread::id Task::getThreadId() const {
     return threadId;
+}
+
+int Task::getRetryCount() const {
+    return retryCount;
+}
+
+int Task::getMaxRetries() const {
+    return maxRetries;
 }
