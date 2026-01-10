@@ -8,7 +8,7 @@ void PriorityScheduler::submit(Task task) {
 
 Task PriorityScheduler::getNextTask() {
     std::lock_guard<std::mutex> lock(mtx);
-    Task task = std::move(pq.top());
+    Task task = pq.top();  // Remove redundant std::move
     pq.pop();
     return task;
 }

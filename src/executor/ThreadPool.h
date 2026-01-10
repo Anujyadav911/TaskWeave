@@ -17,6 +17,9 @@ public:
 
     void start();
     void submit(Task task);
+    void shutdown();      // graceful: finish queued work, stop accepting
+    void shutdownNow();   // force: stop immediately
+    size_t getSize() const { return workers.size(); }
 
 private:
     void workerLoop();
@@ -25,6 +28,7 @@ private:
     std::shared_ptr<Scheduler> scheduler;
 
     std::atomic<bool> stop;
+    std::atomic<bool> accepting{true};
     std::mutex mtx;
     std::condition_variable cv;
 };

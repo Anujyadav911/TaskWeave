@@ -24,15 +24,20 @@ void ThreadPool::start() {
 }
 
 void ThreadPool::submit(Task task) {
+    if (!accepting) {
+        return;
+    }
+
     if (workers.empty()) {
         start();
     }
     task.markReady();
     scheduler->submit(std::move(task));
+    cv.notify_one();
 }
 
 void ThreadPool::workerLoop() {
-    while (!stop) {
+    while (true) {
         if (!scheduler->empty()) {
             Task task = scheduler->getNextTask();
             try {
@@ -51,16 +56,37 @@ void ThreadPool::workerLoop() {
             }
         } else {
             std::unique_lock<std::mutex> lock(mtx);
+            if (stop) {
+                break;
+            }
             cv.wait_for(lock, std::chrono::milliseconds(50));
+            if (stop && scheduler->empty()) {
+                break;
+            }
         }
     }
 }
 
-ThreadPool::~ThreadPool() {
+void ThreadPool::shutdown() {
+    accepting = false;
     stop = true;
     cv.notify_all();
     for (auto& t : workers) {
         if (t.joinable())
             t.join();
     }
+}
+
+void ThreadPool::shutdownNow() {
+    accepting = false;
+    stop = true;
+    cv.notify_all();
+    for (auto& t : workers) {
+        if (t.joinable())
+            t.join();
+    }
+}
+
+ThreadPool::~ThreadPool() {
+    shutdown();
 }
