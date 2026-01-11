@@ -1,0 +1,10 @@
+*.exe
+*.o
+*.obj
+*.db
+*.log
+.git
+.gitignore
+tests/
+*.md
+!Readme.md
